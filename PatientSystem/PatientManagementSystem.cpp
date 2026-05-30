@@ -12,15 +12,24 @@
 #include "HospitalAlertSystemFacade.h"
 
 #include "PatientFileLoaderAdapter.h"
+#include "PatientLoaderComposite.h"
 
 using namespace std;
 
 
 PatientManagementSystem::PatientManagementSystem() :
-	_patientDatabaseLoader(std::make_unique<PatientFileLoaderAdapter>("patients.txt")),
 	_hospitalAlertSystem(std::make_unique<HospitalAlertSystemFacade>()),
 	_gpNotificationSystem(std::make_unique<GPNotificationSystemFacade>())
 {
+	// create the composite loader
+	PatientLoaderComposite* patientLoaderComposite = new PatientLoaderComposite();
+	// add the database loader first
+	patientLoaderComposite->addLoader(std::make_unique<PatientDatabaseLoader>());
+	// add the file loader second 
+	patientLoaderComposite->addLoader(std::make_unique<PatientFileLoaderAdapter>("patients.txt"));
+	
+	// store the composite loader as the system's one patient loader
+	_patientDatabaseLoader.reset(patientLoaderComposite);
 	_patientDatabaseLoader->initialiseConnection();
 }
 
