@@ -1,5 +1,6 @@
 #pragma once
 
+#include "PatientAlertObserver.h"
 #include "Vitals.h"
 #include <map>
 #include <memory>
@@ -13,6 +14,7 @@ class HospitalAlertSystemFacade;
 class GPNotificationSystemFacade;
 class Patient;
 class Vitals;
+class PatientAlertObserver;
 
 
 class PatientManagementSystem
@@ -32,6 +34,12 @@ public:
 	// calculate the patient's alert levels from the added vitals
 	void calculateAlertLevel(Patient* patient, const Vitals* vitals);
 
+	// add an alert observer 
+	void addAlertObserver(std:: unique_ptr<PatientAlertObserver> observer);
+
+	// notfy all alert observers of the patient's alert level
+	void notifyObservers(Patient* patient);
+
 	void printWelcomeMessage() const;
 	void printMainMenu() const;
 	void printPatients() const;
@@ -42,6 +50,7 @@ protected:
 
 	std::unique_ptr<HospitalAlertSystemFacade> _hospitalAlertSystem;
 	std::unique_ptr<GPNotificationSystemFacade> _gpNotificationSystem;
+	std:: vector<std:: unique_ptr<PatientAlertObserver> > _alertObservers;
 
 	std::unique_ptr<AbstractPatientDatabaseLoader> _patientDatabaseLoader;
 

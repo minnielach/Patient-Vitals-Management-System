@@ -8,6 +8,8 @@ class Vitals;
 // base class for alert level calculation 
 class AlertLevelStrategy {
     public:
+    
+    //virtual deconstructor to allow the object to be cleaned up 
     virtual ~AlertLevelStrategy() = default;
 
     // each digagnosis calculates the alert level in its own way

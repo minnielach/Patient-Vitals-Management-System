@@ -16,6 +16,8 @@
 
 #include "AlertLevelStrategy.h"
 
+#include "PatientAlertObserver.h"
+
 using namespace std;
 
 
@@ -29,10 +31,18 @@ PatientManagementSystem::PatientManagementSystem() :
 	patientLoaderComposite->addLoader(std::make_unique<PatientDatabaseLoader>());
 	// add the file loader second 
 	patientLoaderComposite->addLoader(std::make_unique<PatientFileLoaderAdapter>("patients.txt"));
+
+	// create the observers for GP and hospital
+	std:: unique_ptr<PatientAlertObserver> hospitalObserver = std:: make_unique<HospitalAlertObserver>(_hospitalAlertSystem.get());
+	std:: unique_ptr<PatientAlertObserver> gpObserver = std:: make_unique<GPAlertObserver>(_gpNotificationSystem.get());
+	addAlertObserver(std:: move(hospitalObserver));
+	addAlertObserver(std:: move(gpObserver));
 	
 	// store the composite loader as the system's one patient loader
 	_patientDatabaseLoader.reset(patientLoaderComposite);
 	_patientDatabaseLoader->initialiseConnection();
+
+
 }
 
 PatientManagementSystem::~PatientManagementSystem()
@@ -144,6 +154,23 @@ void PatientManagementSystem:: calculateAlertLevel(Patient* patient, const Vital
 	if (strategy != nullptr) {
 		AlertLevel alertLevel = strategy->calculate(*patient, *vitals);
 		patient->setAlertLevel(alertLevel);
+
+		// if the patient's alert level is red, notify the observers
+		if(patient->alertLevel() == AlertLevel:: Red) {
+			notifyObservers(patient);
+		}
+	}
+}
+
+// add the observer into the list of alert observers
+void PatientManagementSystem:: addAlertObserver(std:: unique_ptr<PatientAlertObserver> observer) {
+	_alertObservers.push_back(std:: move(observer));
+}
+
+// notify each observer in the list using a for loop 
+void PatientManagementSystem:: notifyObservers(Patient* patient) {
+	for (const auto& observer : _alertObservers) {
+		observer->update(patient);
 	}
 }
 
