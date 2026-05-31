@@ -14,6 +14,8 @@
 #include "PatientFileLoaderAdapter.h"
 #include "PatientLoaderComposite.h"
 
+#include "AlertLevelStrategy.h"
+
 using namespace std;
 
 
@@ -113,9 +115,35 @@ void PatientManagementSystem::addVitalsRecord()
 
 		Vitals* v = new Vitals(bodyTemperature, bloodPressure, heartRate, respitoryRate);
 		_patientLookup[pid]->addVitals(v);
+		calculateAlertLevel(_patientLookup[pid], v);
 	}
 	else {
 		cout << "Patient not found" << endl;
+	}
+}
+
+void PatientManagementSystem:: calculateAlertLevel(Patient* patient, const Vitals* vitals){
+	std:: unique_ptr<AlertLevelStrategy> strategy;
+	
+	// if patient's diagnosis is Cordyceps Brain Infection then use the necessary strategy to calculate
+	if (patient->primaryDiagnosis() == Diagnosis:: CORDYCEPS_BRAIN_INFECTION){
+		strategy = std:: make_unique<CordycepsAlertStrategy>();
+	}
+
+	// if patient's diagnosis is Kerpal's Syndrome then use the necessary strategy to calculate
+	if (patient->primaryDiagnosis() == Diagnosis:: KEPRALS_SYNDROME){
+		strategy = std:: make_unique<KepralsAlertStrategy>();
+	}
+
+	// if patient's diagnosis is Andromeda Strain then use select the strategy to use to calculate
+	if (patient->primaryDiagnosis() == Diagnosis:: ANDROMEDA_STRAIN){
+		strategy = std:: make_unique<AndromedaAlertStrategy>();
+	}
+
+	// if a strategy is selected, calculate and set the alert level
+	if (strategy != nullptr) {
+		AlertLevel alertLevel = strategy->calculate(*patient, *vitals);
+		patient->setAlertLevel(alertLevel);
 	}
 }
 

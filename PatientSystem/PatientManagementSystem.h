@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Vitals.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -11,6 +12,7 @@ class AbstractPatientDatabaseLoader;
 class HospitalAlertSystemFacade;
 class GPNotificationSystemFacade;
 class Patient;
+class Vitals;
 
 
 class PatientManagementSystem
@@ -26,6 +28,9 @@ public:
 
 	// ask the user for a patient and vitals and add those vitals to the patient
 	void addVitalsRecord();
+
+	// calculate the patient's alert levels from the added vitals
+	void calculateAlertLevel(Patient* patient, const Vitals* vitals);
 
 	void printWelcomeMessage() const;
 	void printMainMenu() const;
